@@ -1,0 +1,16 @@
+name: endres_steuer_x1
+description: Steuerbeleganalyse mit GPT
+version: 1.0.0
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.5
+  path_provider: ^2.0.11
+  flutter_dotenv: ^5.0.2
+
+flutter:
+  uses-material-design: true
