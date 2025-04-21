@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() => runApp(X1App());
+
+class X1App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Endres Steuer X1',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _apiKeyController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
+  String _response = "";
+
+  Future<void> sendToGPT(String input, String apiKey) async {
+    final uri = Uri.parse("https://api.openai.com/v1/chat/completions");
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        "model": "gpt-3.5-turbo",
+        "messages": [
+          {"role": "system", "content": "Du bist ein Steuerexperte."},
+          {"role": "user", "content": input}
+        ],
+        "max_tokens": 500,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final reply = data['choices'][0]['message']['content'];
+      setState(() {
+        _response = reply;
+      });
+    } else {
+      setState(() {
+        _response = "Fehler: ${response.statusCode}";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Endres Steuer X1")),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _apiKeyController,
+              decoration: InputDecoration(labelText: "OpenAI API Key"),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _textController,
+              decoration: InputDecoration(labelText: "Belegtext eingeben"),
+              maxLines: 5,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              child: Text("Senden an GPT"),
+              onPressed: () {
+                sendToGPT(_textController.text, _apiKeyController.text);
+              },
+            ),
+            SizedBox(height: 20),
+            Text("Antwort:", style: TextStyle(fontWeight: FontWeight.bold)),
+            Expanded(child: SingleChildScrollView(child: Text(_response))),
+          ],
+        ),
+      ),
+    );
+  }
+}
